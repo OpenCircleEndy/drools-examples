@@ -1,0 +1,26 @@
+//created on: 7-okt-2016
+package com.sample.rules
+
+//list any import classes here.
+import com.sample.model.Volume;
+
+rule "You are number one"
+
+    when
+        v1: Volume(v1.rank < 1)
+    then
+        v1.setRank(1);
+        update(v1);
+end
+
+rule "Size does matter"
+
+    when
+        v1: Volume()
+        v2: Volume(v1.value > v2.value, v1.rank <= v2.rank)
+    then
+        v2.setRank(v1.getRank());
+        v1.setRank(v2.getRank()+1);
+        update(v1);
+        update(v2);
+end

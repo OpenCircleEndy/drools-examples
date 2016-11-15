@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kmodule xmlns="http://jboss.org/kie/6.0.0/kmodule">
+    <!-- Default Knowledge base. -->
+    <kbase default="true" name="example-scenario1" packages="scenario1" eventProcessingMode="cloud">
+        <ksession  default="true" name="default-session1" type="stateless"/>
+    </kbase>
+    <!-- Alternative Knowledge base. -->
+    <kbase default="false" name="example-scenario2" packages="scenario2" eventProcessingMode="cloud">
+        <ksession default="true" name="default-session2" type="stateless"/>
+    </kbase>
+</kmodule>

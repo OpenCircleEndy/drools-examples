@@ -1,0 +1,147 @@
+//created on: 7-okt-2016
+package com.sample.rules
+
+//list any import classes here.
+import com.sample.model.ChessPiece;
+import com.sample.model.ChessPiece.Color;
+import com.sample.model.ChessPiece.Type;
+import com.sample.model.Move;
+import java.awt.Point;
+
+//declare any global variables here
+
+rule "Set white pawn movement"
+    when
+        cp: ChessPiece(type == Type.PAWN, color == Color.WHITE, evaluated == false)
+        not Move(piece == cp)
+    then
+        insert(new Move(0,1,cp));
+end
+
+rule "Set black pawn movement"
+    when
+        cp: ChessPiece(type == Type.PAWN, color == Color.BLACK, evaluated == false)
+        not Move(piece == cp)
+    then
+        insert(new Move(0,-1,cp));
+        update(cp);
+end
+
+rule "Set rook movement"
+    when
+        cp: ChessPiece(type == Type.ROOK, evaluated == false)
+        not Move(piece == cp)
+    then
+    	for (int i = 1; i < 8; i++) {
+	        insert(new Move(0,i,cp));
+	        insert(new Move(0,-i,cp));
+	        insert(new Move(i,0,cp));
+	        insert(new Move(-i,0,cp));
+		}    	
+		update(cp);
+end
+
+rule "Set bishop movement"
+    when
+        cp: ChessPiece(type == Type.BISHOP, evaluated == false)
+        not Move(piece == cp)
+    then
+    	for (int i = 1; i < 8; i++) {
+	        insert(new Move(i,i,cp));
+	        insert(new Move(i,-i,cp));
+	        insert(new Move(-i,i,cp));
+	        insert(new Move(-i,-i,cp));
+		}    	
+		update(cp);		  	
+end
+
+rule "Set knight movement"
+    when
+        cp: ChessPiece(type == Type.KNIGHT, evaluated == false)
+        not Move(piece == cp)
+    then
+        insert(new Move(2,1,cp));    	
+        insert(new Move(-2,1,cp));    	
+        insert(new Move(2,-1,cp));    	
+        insert(new Move(-2,-1,cp));   	
+        insert(new Move(1,2,cp));    	
+        insert(new Move(-1,2,cp));    	
+        insert(new Move(1,-2,cp));    	
+        insert(new Move(-1,-2,cp));   	
+		update(cp);
+end
+
+rule "Set King movement"
+    when
+        cp: ChessPiece(type == Type.KING, evaluated == false)
+        not Move(piece == cp)
+    then
+        insert(new Move(0,1,cp));    	
+        insert(new Move(0,-1,cp));    	
+        insert(new Move(1,0,cp));    	
+        insert(new Move(-1,0,cp));   	   	
+        insert(new Move(1,1,cp));    	
+        insert(new Move(1,-1,cp));    	
+        insert(new Move(-1,1,cp));    	
+        insert(new Move(-1,-1,cp));   	   	
+		update(cp);
+end
+
+rule "Set queen movement"
+    when
+        cp: ChessPiece(type == Type.QUEEN, evaluated == false)
+        not Move(piece == cp)
+    then
+    	for (int i = 1; i < 8; i++) {
+	        insert(new Move(0,i,cp));
+	        insert(new Move(0,-i,cp));
+	        insert(new Move(i,0,cp));
+	        insert(new Move(-i,0,cp));
+	        insert(new Move(i,i,cp));
+	        insert(new Move(i,-i,cp));
+	        insert(new Move(-i,i,cp));
+	        insert(new Move(-i,-i,cp));
+		}  
+		update(cp);
+end
+
+rule "Chess piece out of bounds"
+    when
+        m: Move(targetPosition.x<1 || targetPosition.x>8 || targetPosition.y<1 || targetPosition.y>8)
+    then
+    	System.out.println("Out of bounds! Removing move to " + m.getTargetPosition().x + "," + m.getTargetPosition().y + ""); 
+        retract(m);
+end
+
+rule "Let's work together"
+    when
+    	cp: ChessPiece()
+        m: Move(targetPosition.x == cp.position.x, targetPosition.y == cp.position.y)
+    then
+    	System.out.println("Don't capture yourself! Removing move to " + m.getTargetPositionAsString()); 
+        retract(m);
+end
+
+rule "Bishops can't jump"
+    when
+    	cp1: ChessPiece(type == Type.BISHOP || type == Type.QUEEN)
+    	cp2: ChessPiece(color == cp1.color, Math.abs(position.x - cp1.position.x) == Math.abs(position.y - cp1.position.y))
+        m: Move(piece == cp1, 
+        	Integer.signum(cp2.position.x - cp1.position.x) == Integer.signum(targetPosition.x - cp2.position.x), 
+        	Integer.signum(cp2.position.y - cp1.position.y) == Integer.signum(targetPosition.y - cp2.position.y))
+    then
+		System.out.println("Only knights are allowed to jump! Removing move to " + m.getTargetPositionAsString()); 
+    	retract(m);
+end
+
+rule "Rooks can't jump"
+    when
+    	cp1: ChessPiece(type == Type.ROOK || type == Type.QUEEN)
+    	cp2: ChessPiece(color == cp1.color, position.x == cp1.position.x || position.y == cp1.position.y)
+        m: Move(piece == cp1, 
+        	Integer.signum(cp2.position.x - cp1.position.x) == Integer.signum(targetPosition.x - cp2.position.x), 
+        	Integer.signum(cp2.position.y - cp1.position.y) == Integer.signum(targetPosition.y - cp2.position.y))
+    then
+		System.out.println("Only knights are allowed to jump! Removing move to " + m.getTargetPositionAsString()); 
+    	retract(m);
+end
